@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>NEXT v5 RC - 行動復帰アプリ</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#6747ff">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="NEXT">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <style>
+    :root {
+      --ink: #1f1730;
+      --muted: #675f76;
+      --white: rgba(255,255,255,.90);
+      --line: rgba(31,23,48,.10);
+      --shadow: 0 22px 60px rgba(37,28,63,.18);
+      --red: #ff4f6d;
+      --orange: #ff9f43;
+      --yellow: #ffd166;
+      --green: #2ecc71;
+      --blue: #2f80ed;
+      --cyan: #00b8a9;
+      --purple: #8e5cff;
+      --pink: #ff72b6;
+      --gray: #718096;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
+      color: var(--ink);
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 10% 5%, rgba(255,79,109,.30), transparent 28%),
+        radial-gradient(circle at 90% 0%, rgba(47,128,237,.34), transparent 30%),
+        radial-gradient(circle at 15% 92%, rgba(46,204,113,.26), transparent 30%),
+        radial-gradient(circle at 85% 85%, rgba(142,92,255,.30), transparent 28%),
+        linear-gradient(135deg, #fff8e8 0%, #eef8ff 48%, #fff0fa 100%);
+    }
+
+    .app { width: min(1060px, 100%); margin: 0 auto; padding: 22px; }
+
+    header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding: 20px 4px 28px; }
+    .logo { display: inline-flex; align-items: center; gap: 12px; }
+    .logo-mark { width: 58px; height: 58px; border-radius: 18px; background: conic-gradient(from 180deg, var(--red), var(--orange), var(--green), var(--blue), var(--purple), var(--red)); box-shadow: 0 14px 36px rgba(142,92,255,.28); }
+    h1 { font-size: clamp(52px,10vw,92px); line-height: .86; margin: 0; letter-spacing: -.08em; background: linear-gradient(90deg,#1f1730,#6747ff,#ff4f6d); -webkit-background-clip: text; color: transparent; }
+    .tagline { margin: 10px 0 0 72px; color: var(--muted); font-size: 17px; font-weight: 800; }
+
+    .card { background: var(--white); border: 1px solid rgba(255,255,255,.82); border-radius: 30px; box-shadow: var(--shadow); padding: 22px; margin-bottom: 18px; backdrop-filter: blur(18px); position: relative; overflow: hidden; }
+    .card::before { content:""; position:absolute; inset:0 auto 0 0; width:10px; background: linear-gradient(180deg,var(--purple),var(--blue)); }
+    .card > * { position: relative; }
+
+    .eyebrow { text-transform: uppercase; letter-spacing: .12em; font-size: 12px; color: var(--muted); margin: 0 0 10px; font-weight: 900; }
+    h2 { margin: 0 0 12px; font-size: 21px; letter-spacing: -.03em; }
+    h3 { margin: 16px 0 8px; font-size: 16px; }
+
+    button,input,select { font: inherit; }
+    button { border: 0; border-radius: 999px; padding: 13px 17px; cursor: pointer; font-weight: 900; transition: transform .12s ease, box-shadow .12s ease, opacity .12s ease; }
+    button:hover { transform: translateY(-1px); box-shadow: 0 12px 28px rgba(31,23,48,.13); }
+    button:active { transform: scale(.98); }
+    button:disabled { opacity: .45; cursor: not-allowed; }
+
+    .primary { color:#fff; background: linear-gradient(135deg,#1f1730,#6747ff); }
+    .secondary { color:#fff; background: linear-gradient(135deg,#2f80ed,#00b8a9); }
+    .danger { color:#fff; background: linear-gradient(135deg,#ff4f6d,#ff7675); }
+    .ghost { color:#1f1730; background: rgba(255,255,255,.72); border: 1px solid var(--line); }
+    .small { padding: 9px 12px; font-size: 13px; }
+
+    input,select { border: 1px solid var(--line); background: rgba(255,255,255,.92); border-radius: 16px; padding: 14px; outline:none; color: var(--ink); width: 100%; }
+    input:focus,select:focus { border-color: var(--purple); box-shadow: 0 0 0 4px rgba(142,92,255,.15); }
+    label { display: grid; gap: 6px; color: var(--muted); font-size: 13px; font-weight: 900; }
+
+
+    .return-card { background: linear-gradient(135deg,rgba(31,23,48,.96),rgba(103,71,255,.92)); color:#fff; }
+    .return-card::before { background: linear-gradient(180deg,var(--green),var(--yellow),var(--red)); }
+    .return-card .eyebrow, .return-card .hint { color: rgba(255,255,255,.76); }
+    .return-card h2 { font-size: clamp(24px, 5vw, 42px); line-height: 1.08; }
+
+    .install-card::before { background: linear-gradient(180deg,var(--cyan),var(--purple)); }
+    .install-steps { display:grid; gap:8px; margin:12px 0 0; }
+    .install-steps div { background:rgba(255,255,255,.70); border:1px solid var(--line); border-radius:16px; padding:12px 14px; color:var(--muted); font-weight:800; }
+
+    .reminder-card::before { background: linear-gradient(180deg,var(--orange),var(--pink)); }
+    .reminder-grid { display:grid; grid-template-columns: repeat(4,minmax(140px,1fr)); gap:10px; margin-top:12px; }
+
+    .status-card::before { background: linear-gradient(180deg,var(--green),var(--blue),var(--orange),var(--red)); }
+    .mood-grid { display: grid; grid-template-columns: repeat(6,1fr); gap: 10px; }
+    .mood-grid button { min-height: 52px; border: 2px solid transparent; color:#fff; }
+    .mood-grid button[data-mood="元気"] { background: linear-gradient(135deg,#2ecc71,#0ca678); }
+    .mood-grid button[data-mood="普通"] { background: linear-gradient(135deg,#2f80ed,#56ccf2); }
+    .mood-grid button[data-mood="疲れてる"] { background: linear-gradient(135deg,#ff9f43,#ffd166); color:#4a3100; }
+    .mood-grid button[data-mood="しんどい"] { background: linear-gradient(135deg,#8e5cff,#b388ff); }
+    .mood-grid button[data-mood="焦ってる"] { background: linear-gradient(135deg,#ff4f6d,#ff7675); }
+    .mood-grid button[data-mood="何もしたくない"] { background: linear-gradient(135deg,#718096,#a0aec0); }
+    .mood-grid button:not(.active) { filter: saturate(.55); opacity:.62; }
+    .mood-grid button.active { outline:4px solid rgba(255,255,255,.95); box-shadow:0 14px 30px rgba(31,23,48,.20); transform: translateY(-2px); opacity:1; filter:none; }
+
+    .hero { padding: 32px; background: linear-gradient(135deg,rgba(255,255,255,.96),rgba(255,255,255,.72)), radial-gradient(circle at top right,rgba(255,79,109,.24),transparent 36%), radial-gradient(circle at bottom left,rgba(47,128,237,.26),transparent 40%); }
+    .hero::before { width:14px; background: linear-gradient(180deg,var(--red),var(--orange),var(--green),var(--blue),var(--purple)); }
+    .hero-top { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .hero h2 { font-size: clamp(32px,6vw,58px); line-height:1.04; margin:8px 0 14px; }
+    .reason { color:var(--muted); font-size:16px; line-height:1.75; background:rgba(255,255,255,.74); border:1px solid var(--line); padding:14px 16px; border-radius:20px; margin:0; }
+    .badge { border-radius:999px; padding:9px 14px; background:linear-gradient(135deg,#1f1730,#6747ff); color:#fff; font-size:13px; font-weight:900; box-shadow:0 10px 24px rgba(103,71,255,.22); white-space:nowrap; }
+    .meta,.actions,.add-row,.row { display:flex; flex-wrap:wrap; gap:10px; }
+    .meta { margin:20px 0; }
+    .meta span { border-radius:999px; padding:9px 12px; color:#fff; font-size:13px; font-weight:900; }
+    #nextTime { background: var(--gray); }
+    #nextCategory { background: var(--purple); }
+
+    .quick-fields,.settings-grid,.reminder-grid { display:grid; grid-template-columns: repeat(4,minmax(140px,1fr)); gap:10px; margin-top:12px; }
+    .grid { display:grid; grid-template-columns: 1fr 1fr; gap:18px; }
+    .hint { color:var(--muted); font-size:13px; margin:12px 0 0; line-height:1.6; }
+
+    .list,.task-list,.category-list { padding:0; margin:14px 0 0; list-style:none; }
+    .list li,.task-list li,.category-list li { background:rgba(255,255,255,.70); border:1px solid var(--line); border-radius:18px; padding:13px 14px; margin-top:10px; color:var(--muted); display:flex; justify-content:space-between; gap:12px; align-items:center; }
+
+    .distraction-card::before { background: linear-gradient(180deg,var(--cyan),var(--blue)); }
+    .done-card::before { background: linear-gradient(180deg,var(--green),var(--yellow)); }
+
+    .swipe-item { touch-action: pan-y; transition: transform .18s ease, opacity .18s ease, background .18s ease; position: relative; }
+    .swipe-item.swiping { background: rgba(255,79,109,.16); }
+    .swipe-item .swipe-hint { font-size: 12px; color: var(--muted); white-space: nowrap; }
+    .swipe-item.removing { transform: translateX(-110%); opacity: 0; }
+
+    .task-main,.category-main { color:var(--ink); font-weight:950; font-size:16px; }
+    .task-sub,.category-sub { font-size:12px; color:var(--muted); margin-top:6px; line-height:1.55; }
+    .task-chip-row { display:flex; flex-wrap:wrap; gap:6px; margin-top:9px; }
+    .chip { display:inline-flex; align-items:center; border-radius:999px; padding:5px 9px; font-size:11px; font-weight:950; color:#fff; }
+    .chip.due { background:#1f1730; }
+    .chip.score { background:var(--purple); }
+    .chip.weight { background:var(--gray); }
+    .cat-chip { color:#fff; min-width: 76px; justify-content:center; }
+
+    .delete-btn { padding:8px 11px; font-size:12px; background:rgba(255,255,255,.76); border:1px solid var(--line); color:var(--muted); flex:0 0 auto; }
+
+    .timer { background: linear-gradient(135deg,rgba(31,23,48,.96),rgba(103,71,255,.92)), radial-gradient(circle at top right,rgba(255,255,255,.20),transparent 36%); color:#fff; }
+    .timer::before { background:linear-gradient(180deg,var(--green),var(--yellow),var(--red)); }
+    .timer .eyebrow { color:rgba(255,255,255,.72); }
+    .timer-text { font-size:clamp(60px,16vw,124px); font-weight:950; letter-spacing:-.08em; line-height:1; margin:18px 0; }
+
+    .settings-card::before { background: linear-gradient(180deg,var(--pink),var(--purple)); }
+    .toggle-settings { margin-bottom: 12px; }
+
+
+    .legal-card::before { background: linear-gradient(180deg,var(--gray),var(--blue)); }
+    .legal-links { display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; }
+    .legal-links a { display:inline-flex; border-radius:999px; padding:10px 13px; background:rgba(255,255,255,.72); border:1px solid var(--line); color:var(--ink); font-weight:900; text-decoration:none; }
+    .notice { background: rgba(255,255,255,.72); border: 1px solid var(--line); border-radius: 18px; padding: 12px 14px; color: var(--muted); line-height:1.7; }
+    .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+
+    .toast { position:fixed; left:50%; bottom:24px; transform:translateX(-50%); background:linear-gradient(135deg,#1f1730,#6747ff); color:#fff; padding:14px 18px; border-radius:999px; box-shadow:var(--shadow); z-index:20; font-weight:900; max-width: 92%; text-align:center; }
+    .hidden { display:none !important; }
+
+    @media (max-width:760px) {
+      .app { padding:14px; }
+      .quick-fields,.settings-grid,.reminder-grid,.mood-grid,.grid { grid-template-columns:1fr 1fr; }
+      .hero { padding:24px; }
+    }
+    @media (max-width:500px) {
+      .quick-fields,.settings-grid,.reminder-grid,.mood-grid,.grid { grid-template-columns:1fr; }
+      header { align-items:center; }
+      .tagline { margin-left:0; }
+      .actions button { flex:1 1 100%; }
+      .logo-mark { width:48px; height:48px; }
+      .list li,.task-list li,.category-list li { align-items:flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div>
+        <div class="logo"><div class="logo-mark"></div><h1>NEXT</h1></div>
+        <p class="tagline">開かない日があっても、戻ればいい。</p>
+      </div>
+      <button id="resetBtn" class="ghost small">リセット</button>
+    </header>
+
+    <main>
+
+      <section id="returnPanel" class="card return-card hidden">
+        <p class="eyebrow">Welcome back</p>
+        <h2 id="returnTitle">久しぶり。今日は1個だけ戻ろう。</h2>
+        <p class="hint" id="returnText">途切れても大丈夫。管理し直さなくていいです。</p>
+        <div class="actions">
+          <button id="returnStartBtn" class="secondary">次の1個を見る</button>
+          <button id="returnHideBtn" class="ghost">閉じる</button>
+        </div>
+      </section>
+
+      <section id="installPanel" class="card install-card">
+        <h2>開き忘れ対策</h2>
+        <p class="hint">このアプリは「開くまでが難しい」前提で作っています。まずホーム画面に置くのがおすすめです。</p>
+        <div class="install-steps">
+          <div>1. SafariでこのURLを開く</div>
+          <div>2. 共有ボタンを押す</div>
+          <div>3. 「ホーム画面に追加」を選ぶ</div>
+        </div>
+        <div class="actions" style="margin-top:12px;">
+          <button id="dismissInstallBtn" class="ghost">案内を閉じる</button>
+        </div>
+      </section>
+      <section id="statusPanel" class="card status-card">
+        <h2>今の状態</h2>
+        <div class="mood-grid" id="moodGrid">
+          <button data-mood="元気">元気</button>
+          <button data-mood="普通" class="active">普通</button>
+          <button data-mood="疲れてる">疲れてる</button>
+          <button data-mood="しんどい">しんどい</button>
+          <button data-mood="焦ってる">焦ってる</button>
+          <button data-mood="何もしたくない">何もしたくない</button>
+        </div>
+      </section>
+
+      <section id="nextPanel" class="card hero">
+        <div class="hero-top"><p class="eyebrow">Next action</p><span id="scoreBadge" class="badge">---</span></div>
+        <h2 id="nextTitle">タスクを追加すると、ここに1つだけ出ます</h2>
+        <p id="nextReason" class="reason">一覧で迷わないように、今の状態と期限から自動で選びます。</p>
+        <div class="meta"><span id="nextTime">目安：---</span><span id="nextCategory">カテゴリ：---</span></div>
+        <div class="actions">
+          <button id="startBtn" class="primary">10分だけ開始</button>
+          <button id="quickDoneBtn" class="secondary">開いたからOK</button>
+          <button id="skipBtn" class="secondary">別の候補</button>
+          <button id="cantBtn" class="ghost">今は無理</button>
+        </div>
+      </section>
+
+      <section id="timerPanel" class="card timer hidden">
+        <p class="eyebrow">作業中</p>
+        <h2 id="workingTitle">---</h2>
+        <div id="timerText" class="timer-text">10:00</div>
+        <div class="actions">
+          <button id="doneBtn" class="primary">できた</button>
+          <button id="pauseBtn" class="secondary">中断</button>
+          <button id="distractionBtn" class="ghost">気になったことをメモ</button>
+        </div>
+      </section>
+
+
+      <section class="card reminder-card">
+        <h2>リマインド設定</h2>
+        <p class="hint">このβ版の通知は、ページまたはホーム画面版が起動している間に動きます。端末・ブラウザの制限により、完全なバックグラウンド通知は保証されません。</p>
+        <div class="reminder-grid">
+          <label>通知
+            <select id="reminderEnabled">
+              <option value="off">オフ</option>
+              <option value="on">オン</option>
+            </select>
+          </label>
+          <label>朝
+            <input id="morningTime" type="time" value="10:00">
+          </label>
+          <label>夜
+            <input id="nightTime" type="time" value="22:00">
+          </label>
+          <label>&nbsp;
+            <button id="saveReminderBtn" class="primary">保存</button>
+          </label>
+        </div>
+        <div class="actions" style="margin-top:12px;">
+          <button id="permissionBtn" class="secondary">通知を許可する</button>
+          <button id="testNotifyBtn" class="ghost">テスト通知</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>タスクを雑に追加</h2>
+        <div class="add-row">
+          <input id="taskInput" type="text" placeholder="例：支払い確認、洗濯、資料作成、LINE返信" />
+          <button id="addTaskBtn" class="primary">追加</button>
+        </div>
+        <div class="quick-fields">
+          <label>期限<select id="dueInput"><option>今日</option><option>明日</option><option>3日以内</option><option>今週</option><option selected>いつか</option></select></label>
+          <label>カテゴリ<select id="categoryInput"></select></label>
+          <label>重さ<select id="weightInput"><option>5分</option><option selected>10分</option><option>30分</option><option>1時間以上</option></select></label>
+          <label>損失<select id="lossInput"><option selected>特になし</option><option>お金を失う</option><option>信用を失う</option><option>健康に悪い</option><option>生活が詰まる</option></select></label>
+        </div>
+        <p class="hint">カテゴリは下の「設定」で自由に追加・削除・色変更できます。</p>
+      </section>
+
+      <section class="grid">
+        <div class="card distraction-card">
+          <h2>脱線メモ</h2>
+          <div class="add-row">
+            <input id="distractionInput" type="text" placeholder="今じゃないけど気になったこと" />
+            <button id="addDistractionBtn" class="secondary">逃がす</button>
+          </div>
+          <p class="hint">左にスワイプで削除できます。</p>
+          <ul id="distractionList" class="list"></ul>
+        </div>
+
+        <div class="card done-card">
+          <h2>戻ってこれた記録</h2>
+          <p class="hint" id="returnStats">今月、0回戻ってこれました。</p>
+          <ul id="doneList" class="list"></ul>
+        </div>
+      </section>
+
+      <section class="card settings-card">
+        <button id="toggleSettingsBtn" class="secondary toggle-settings">カテゴリ設定を開く</button>
+        <div id="settingsPanel" class="hidden">
+          <h2>カテゴリ設定</h2>
+          <p class="hint">名前・色・重要度を編集できます。重要度が高いカテゴリほど「今やること」に出やすくなります。</p>
+          <div class="settings-grid">
+            <label>カテゴリ名<input id="newCategoryName" type="text" placeholder="例：勉強、家事、仕事" /></label>
+            <label>色<select id="newCategoryColor">
+              <option value="#2f80ed">青</option><option value="#2ecc71">緑</option><option value="#ff9f43">オレンジ</option><option value="#ff4f6d">赤</option><option value="#8e5cff">紫</option><option value="#ff72b6">ピンク</option><option value="#00b8a9">シアン</option><option value="#718096">グレー</option>
+            </select></label>
+            <label>重要度<select id="newCategoryPriority"><option value="6">低い</option><option value="14" selected>普通</option><option value="24">高い</option><option value="32">最重要</option></select></label>
+            <label>&nbsp;<button id="addCategoryBtn" class="primary">カテゴリ追加</button></label>
+          </div>
+          <ul id="categoryList" class="category-list"></ul>
+        </div>
+      </section>
+
+
+      <section class="card legal-card">
+        <h2>安全性・データ管理</h2>
+        <p class="notice">
+          NEXTは医療・診断・治療を目的としたアプリではありません。タスク管理が苦手な人の行動復帰を支援するためのセルフマネジメントツールです。
+          入力データはこの端末のブラウザ内に保存され、サーバー送信は行いません。
+        </p>
+        <div class="actions" style="margin-top:12px;">
+          <button id="exportDataBtn" class="secondary">データを書き出す</button>
+          <button id="importDataBtn" class="ghost">データを読み込む</button>
+          <input id="importFileInput" class="sr-only" type="file" accept="application/json">
+        </div>
+        <div class="legal-links">
+          <a href="privacy.html">プライバシーポリシー</a>
+          <a href="terms.html">利用規約</a>
+          <a href="release_checklist.md">リリースチェックリスト</a>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>タスク一覧</h2>
+        <p class="hint">迷いやすいので通常は見なくてOK。編集用です。</p>
+        <ul id="taskList" class="task-list"></ul>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast hidden" role="status" aria-live="polite">メモした。今は戻ろう。</div>
+
+<script>
+const STORAGE_KEY = "next_focus_v5_rc";
+
+const DEFAULT_CATEGORIES = [
+  { name: "生活", color: "#2f80ed", priority: 24 },
+  { name: "仕事", color: "#8e5cff", priority: 24 },
+  { name: "お金", color: "#2ecc71", priority: 28 },
+  { name: "健康", color: "#ff4f6d", priority: 24 },
+  { name: "家事", color: "#ff9f43", priority: 20 },
+  { name: "人間関係", color: "#ff72b6", priority: 18 },
+  { name: "勉強", color: "#00b8a9", priority: 16 },
+  { name: "創作", color: "#ff4f6d", priority: 18 },
+  { name: "休息", color: "#718096", priority: 12 },
+  { name: "その他", color: "#8e5cff", priority: 6 }
+];
+
+const DEFAULT_TASKS = [
+  makeTask("水を飲む", "今日", "健康", "5分", "健康に悪い"),
+  makeTask("今日中の予定を1つ確認する", "今日", "生活", "5分", "生活が詰まる"),
+  makeTask("重要な連絡を1件だけ返す", "今日", "人間関係", "10分", "信用を失う"),
+  makeTask("机か床を5分だけ整える", "いつか", "家事", "5分", "特になし")
+];
+
+let state = loadState();
+let currentTaskId = null;
+let skipIds = new Set();
+let timer = null;
+let reminderTimer = null;
+let remaining = 10 * 60;
+
+function makeTask(title, due="いつか", category="その他", weight="10分", loss="特になし") {
+  return { id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()+Math.random()), title: title.trim(), due, category, weight, loss, createdAt: Date.now() };
+}
+
+function loadState() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    const parsed = JSON.parse(saved);
+    if (!parsed.categories) parsed.categories = DEFAULT_CATEGORIES;
+    if (!parsed.reminders) parsed.reminders = { enabled: "off", morning: "10:00", night: "22:00" };
+    if (!parsed.returnLogs) parsed.returnLogs = [];
+    if (typeof parsed.installDismissed === "undefined") parsed.installDismissed = false;
+    return parsed;
+  }
+  return {
+    mood: "普通",
+    categories: DEFAULT_CATEGORIES,
+    tasks: DEFAULT_TASKS,
+    done: [],
+    distractions: [],
+    reminders: { enabled: "off", morning: "10:00", night: "22:00" },
+    returnLogs: [],
+    installDismissed: false,
+    lastOpenedAt: null
+  };
+}
+
+function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function getCategory(name) { return state.categories.find(c => c.name === name) || state.categories.find(c => c.name === "その他") || DEFAULT_CATEGORIES.at(-1); }
+
+function scoreTask(task) {
+  const dueScore = { "今日": 50, "明日": 40, "3日以内": 30, "今週": 20, "いつか": 0 }[task.due] ?? 0;
+  const lossScore = { "お金を失う": 40, "信用を失う": 35, "健康に悪い": 30, "生活が詰まる": 25, "特になし": 0 }[task.loss] ?? 0;
+  const importanceScore = Number(getCategory(task.category).priority || 6);
+  const weightPenalty = { "5分": 0, "10分": -5, "30分": -15, "1時間以上": -30 }[task.weight] ?? -5;
+
+  let moodScore = 0;
+  if (state.mood === "疲れてる" && ["5分", "10分"].includes(task.weight)) moodScore += 30;
+  if (state.mood === "しんどい" && ["生活", "健康", "家事", "休息"].includes(task.category)) moodScore += 35;
+  if (state.mood === "何もしたくない" && ["生活", "健康", "休息"].includes(task.category) && task.weight === "5分") moodScore += 45;
+  if (state.mood === "焦ってる" && ["今日", "明日", "3日以内"].includes(task.due)) moodScore += 25;
+  if (state.mood === "元気" && ["仕事", "勉強", "創作", "お金"].includes(task.category)) moodScore += 25;
+  if (state.mood === "普通") moodScore += 10;
+
+  return dueScore + lossScore + importanceScore + weightPenalty + moodScore;
+}
+
+function chooseNextTask() {
+  const candidates = state.tasks.filter(t => !skipIds.has(t.id));
+  if (!candidates.length && state.tasks.length) { skipIds.clear(); return chooseNextTask(); }
+  if (!candidates.length) return null;
+  return candidates.map(t => ({ task: t, score: scoreTask(t) })).sort((a,b) => b.score - a.score)[0];
+}
+
+function firstStepTitle(rawTitle) {
+  const title = rawTitle.trim();
+  const heavyWords = ["作る","編集","片付け","準備","勉強","練習","投稿","調べ","申告","整理","掃除","資料"];
+  if (!heavyWords.some(w => title.includes(w))) return title;
+  if (title.includes("編集")) return `${title}：素材を1つ選ぶ`;
+  if (title.includes("片付け") || title.includes("掃除")) return `${title}：床か机を5分だけ`;
+  if (title.includes("準備")) return `${title}：必要なものを3つ書く`;
+  if (title.includes("勉強")) return `${title}：1ページだけ開く`;
+  if (title.includes("練習")) return `${title}：5分だけ始める`;
+  if (title.includes("投稿")) return `${title}：タイトルを1つ書く`;
+  if (title.includes("調べ")) return `${title}：検索ワードを1つ入れる`;
+  if (title.includes("申告")) return `${title}：領収書を1枚だけ入力`;
+  if (title.includes("資料")) return `${title}：見出しを3つ書く`;
+  return `${title}：最初の一歩だけ`;
+}
+
+function reasonFor(task) {
+  const parts = [];
+  if (["今日","明日","3日以内"].includes(task.due)) parts.push(`期限が「${task.due}」で近い`);
+  if (task.loss !== "特になし") parts.push(`放置すると「${task.loss}」可能性がある`);
+  if (["5分","10分"].includes(task.weight)) parts.push("今の状態でも始めやすい");
+  parts.push(`カテゴリ「${task.category}」の重要度が反映されている`);
+  return parts.join("。") + "。";
+}
+
+
+function checkReturnPanel() {
+  const panel = document.getElementById("returnPanel");
+  const now = Date.now();
+  if (!state.lastOpenedAt) {
+    state.lastOpenedAt = now;
+    saveState();
+    return;
+  }
+  const hours = (now - state.lastOpenedAt) / 36e5;
+  if (hours >= 18) {
+    const days = Math.floor(hours / 24);
+    document.getElementById("returnTitle").textContent = days >= 1 ? `${days}日ぶり。途切れても大丈夫。` : "久しぶり。今日は1個だけ戻ろう。";
+    document.getElementById("returnText").textContent = "管理し直さなくていいです。今の自分に合う1個だけ見ればOK。";
+    panel.classList.remove("hidden");
+  }
+  state.lastOpenedAt = now;
+  saveState();
+}
+
+function logReturn(reason="opened") {
+  state.returnLogs.push({ at: Date.now(), reason });
+  saveState();
+  renderReturnStats();
+}
+
+function renderReturnStats() {
+  const now = new Date();
+  const month = now.getMonth();
+  const year = now.getFullYear();
+  const count = state.returnLogs.filter(log => {
+    const d = new Date(log.at);
+    return d.getMonth() === month && d.getFullYear() === year;
+  }).length;
+  const el = document.getElementById("returnStats");
+  if (el) el.textContent = `今月、${count}回戻ってこれました。連続記録より、戻れた回数を見ます。`;
+}
+
+function renderReminderSettings() {
+  document.getElementById("reminderEnabled").value = state.reminders.enabled;
+  document.getElementById("morningTime").value = state.reminders.morning;
+  document.getElementById("nightTime").value = state.reminders.night;
+}
+
+function scheduleNextReminder() {
+  clearTimeout(reminderTimer);
+  if (state.reminders.enabled !== "on") return;
+  const now = new Date();
+  const times = [state.reminders.morning, state.reminders.night].map(t => {
+    const [h,m] = t.split(":").map(Number);
+    const d = new Date();
+    d.setHours(h, m, 0, 0);
+    if (d <= now) d.setDate(d.getDate() + 1);
+    return d;
+  }).sort((a,b) => a - b);
+  const next = times[0];
+  const delay = Math.min(next - now, 2147483647);
+  reminderTimer = setTimeout(() => {
+    sendReminderNotification();
+    scheduleNextReminder();
+  }, delay);
+}
+
+function sendReminderNotification() {
+  const message = "タスク管理しなくていい。NEXTを開くだけ。";
+  if ("Notification" in window && Notification.permission === "granted") {
+    new Notification("NEXT", { body: message, icon: "icon.svg" });
+  } else {
+    showToast(message);
+  }
+}
+
+async function requestNotificationPermission() {
+  if (!("Notification" in window)) {
+    showToast("このブラウザは通知に対応していません。");
+    return;
+  }
+  const result = await Notification.requestPermission();
+  if (result === "granted") showToast("通知を許可しました。");
+  else showToast("通知は許可されませんでした。");
+}
+
+function scrollToNext() {
+  document.getElementById("nextPanel").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function render() {
+  saveState();
+  renderCategoryOptions();
+  renderMood();
+  renderNext();
+  renderDistractions();
+  renderDone();
+  renderTasks();
+  renderCategories();
+  renderReminderSettings();
+  renderReturnStats();
+  document.getElementById("installPanel").classList.toggle("hidden", !!state.installDismissed);
+}
+
+function renderMood() {
+  document.querySelectorAll("#moodGrid button").forEach(btn => btn.classList.toggle("active", btn.dataset.mood === state.mood));
+}
+
+function renderNext() {
+  const next = chooseNextTask();
+  const startBtn = document.getElementById("startBtn");
+  if (next) {
+    currentTaskId = next.task.id;
+    const cat = getCategory(next.task.category);
+    document.getElementById("nextTitle").textContent = firstStepTitle(next.task.title);
+    document.getElementById("nextReason").textContent = reasonFor(next.task);
+    document.getElementById("nextTime").textContent = `目安：${next.task.weight}`;
+    document.getElementById("nextCategory").textContent = `カテゴリ：${next.task.category}`;
+    document.getElementById("nextCategory").style.background = safeColor(cat.color);
+    document.getElementById("scoreBadge").textContent = `優先度 ${next.score}`;
+    startBtn.disabled = false;
+  } else {
+    currentTaskId = null;
+    document.getElementById("nextTitle").textContent = "タスクを追加すると、ここに1つだけ出ます";
+    document.getElementById("nextReason").textContent = "まずは雑に1個だけ入れてください。完璧に整理しなくて大丈夫です。";
+    document.getElementById("nextTime").textContent = "目安：---";
+    document.getElementById("nextCategory").textContent = "カテゴリ：---";
+    document.getElementById("scoreBadge").textContent = "---";
+    startBtn.disabled = true;
+  }
+}
+
+function renderCategoryOptions() {
+  const select = document.getElementById("categoryInput");
+  const current = select.value || "その他";
+  select.innerHTML = "";
+  state.categories.forEach(cat => {
+    const opt = document.createElement("option");
+    opt.value = cat.name;
+    opt.textContent = cat.name;
+    select.appendChild(opt);
+  });
+  select.value = state.categories.some(c => c.name === current) ? current : "その他";
+}
+
+function renderDistractions() {
+  const list = document.getElementById("distractionList");
+  list.innerHTML = "";
+  state.distractions.slice().reverse().forEach((text, reverseIndex) => {
+    const index = state.distractions.length - 1 - reverseIndex;
+    const li = document.createElement("li");
+    li.className = "swipe-item";
+    li.dataset.index = index;
+    li.innerHTML = `<span>${escapeHtml(text)}</span><span class="swipe-hint">← 削除</span>`;
+    addSwipeToDelete(li, () => removeDistraction(index, li));
+    list.appendChild(li);
+  });
+}
+
+function addSwipeToDelete(el, onDelete) {
+  let startX = 0, currentX = 0, dragging = false;
+  el.addEventListener("touchstart", e => {
+    startX = e.touches[0].clientX; currentX = startX; dragging = true; el.classList.add("swiping");
+  }, { passive: true });
+  el.addEventListener("touchmove", e => {
+    if (!dragging) return;
+    currentX = e.touches[0].clientX;
+    const dx = Math.min(0, currentX - startX);
+    if (dx < 0) el.style.transform = `translateX(${Math.max(dx, -130)}px)`;
+  }, { passive: true });
+  el.addEventListener("touchend", () => {
+    if (!dragging) return;
+    dragging = false;
+    const dx = currentX - startX;
+    el.classList.remove("swiping");
+    if (dx < -85) onDelete();
+    else el.style.transform = "";
+  });
+
+  let mouseDown = false;
+  el.addEventListener("mousedown", e => { startX = e.clientX; currentX = startX; mouseDown = true; el.classList.add("swiping"); });
+  window.addEventListener("mousemove", e => {
+    if (!mouseDown) return;
+    currentX = e.clientX;
+    const dx = Math.min(0, currentX - startX);
+    if (dx < 0) el.style.transform = `translateX(${Math.max(dx, -130)}px)`;
+  });
+  window.addEventListener("mouseup", () => {
+    if (!mouseDown) return;
+    mouseDown = false;
+    const dx = currentX - startX;
+    el.classList.remove("swiping");
+    if (dx < -85) onDelete();
+    else el.style.transform = "";
+  });
+}
+
+function removeDistraction(index, el) {
+  el.classList.add("removing");
+  setTimeout(() => {
+    state.distractions.splice(index, 1);
+    render();
+    showToast("脱線メモを削除しました。");
+  }, 160);
+}
+
+function renderDone() {
+  const list = document.getElementById("doneList");
+  list.innerHTML = "";
+  state.done.slice().reverse().forEach(item => {
+    const li = document.createElement("li");
+    li.innerHTML = `<span>${escapeHtml(item.title)}</span><small>${new Date(item.doneAt).toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"})}</small>`;
+    list.appendChild(li);
+  });
+}
+
+function renderTasks() {
+  const taskList = document.getElementById("taskList");
+  taskList.innerHTML = "";
+  state.tasks.map(t => ({...t, score: scoreTask(t)})).sort((a,b) => b.score - a.score).forEach(task => {
+    const cat = getCategory(task.category);
+    const li = document.createElement("li");
+    li.innerHTML = `
+      <div>
+        <div class="task-main">${escapeHtml(task.title)}</div>
+        <div class="task-chip-row">
+          <span class="chip due">${escapeHtml(task.due)}</span>
+          <span class="chip cat-chip" style="background:${safeColor(cat.color)}">${escapeHtml(task.category)}</span>
+          <span class="chip weight">${escapeHtml(task.weight)}</span>
+          <span class="chip score">優先度 ${escapeHtml(task.score)}</span>
+        </div>
+        <div class="task-sub">損失：${escapeHtml(task.loss)}</div>
+      </div>
+      <button class="delete-btn" data-delete-task="${task.id}">削除</button>`;
+    taskList.appendChild(li);
+  });
+  document.querySelectorAll("[data-delete-task]").forEach(btn => {
+    btn.onclick = () => {
+      state.tasks = state.tasks.filter(t => t.id !== btn.dataset.deleteTask);
+      skipIds.delete(btn.dataset.deleteTask);
+      render();
+    };
+  });
+}
+
+function renderCategories() {
+  const list = document.getElementById("categoryList");
+  list.innerHTML = "";
+  state.categories.forEach(cat => {
+    const li = document.createElement("li");
+    li.innerHTML = `
+      <div>
+        <div class="category-main"><span class="chip cat-chip" style="background:${safeColor(cat.color)}">${escapeHtml(cat.name)}</span></div>
+        <div class="category-sub">重要度：${escapeHtml(cat.priority)}</div>
+      </div>
+      <div class="row">
+        <button class="ghost small" data-edit-cat="${escapeAttr(cat.name)}">編集</button>
+        <button class="delete-btn" data-delete-cat="${escapeAttr(cat.name)}" ${cat.name === "その他" ? "disabled" : ""}>削除</button>
+      </div>`;
+    list.appendChild(li);
+  });
+
+  document.querySelectorAll("[data-edit-cat]").forEach(btn => {
+    btn.onclick = () => editCategory(unescapeAttr(btn.dataset.editCat));
+  });
+  document.querySelectorAll("[data-delete-cat]").forEach(btn => {
+    btn.onclick = () => deleteCategory(unescapeAttr(btn.dataset.deleteCat));
+  });
+}
+
+function addCategory() {
+  const name = normalizeCategoryName(document.getElementById("newCategoryName").value);
+  const color = safeColor(document.getElementById("newCategoryColor").value);
+  const priority = Number(document.getElementById("newCategoryPriority").value);
+  if (!name) return showToast("カテゴリ名を入力してください。");
+  if (state.categories.some(c => c.name === name)) return showToast("同じ名前のカテゴリがあります。");
+  state.categories.push({ name, color, priority });
+  document.getElementById("newCategoryName").value = "";
+  render();
+  showToast("カテゴリを追加しました。");
+}
+
+function editCategory(name) {
+  const cat = getCategory(name);
+  const newName = prompt("カテゴリ名を編集", cat.name);
+  const trimmed = normalizeCategoryName(newName);
+  if (!trimmed) return;
+  if (trimmed !== cat.name && state.categories.some(c => c.name === trimmed)) return showToast("同じ名前のカテゴリがあります。");
+  const newPriority = prompt("重要度を数字で入力（6=低い、14=普通、24=高い、32=最重要）", cat.priority);
+  const priority = Number(newPriority);
+  if (!Number.isFinite(priority)) return showToast("重要度は数字で入力してください。");
+  const oldName = cat.name;
+  cat.name = trimmed;
+  cat.priority = priority;
+  state.tasks.forEach(t => { if (t.category === oldName) t.category = trimmed; });
+  render();
+  showToast("カテゴリを編集しました。");
+}
+
+function deleteCategory(name) {
+  if (name === "その他") return;
+  if (!confirm(`「${name}」を削除しますか？このカテゴリのタスクは「その他」に移します。`)) return;
+  state.categories = state.categories.filter(c => c.name !== name);
+  state.tasks.forEach(t => { if (t.category === name) t.category = "その他"; });
+  render();
+  showToast("カテゴリを削除しました。");
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+}
+
+function escapeAttr(str) {
+  return encodeURIComponent(String(str));
+}
+
+function unescapeAttr(str) {
+  try { return decodeURIComponent(String(str)); } catch { return String(str); }
+}
+
+function safeColor(color) {
+  const value = String(color || "").trim();
+  return /^#[0-9a-fA-F]{6}$/.test(value) ? value : "#8e5cff";
+}
+
+function normalizeCategoryName(name) {
+  return String(name || "").trim().slice(0, 24);
+}
+
+function validateStateShape(data) {
+  return data &&
+    Array.isArray(data.categories) &&
+    Array.isArray(data.tasks) &&
+    Array.isArray(data.done) &&
+    Array.isArray(data.distractions);
+}
+
+function exportData() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const date = new Date().toISOString().slice(0, 10);
+  a.href = url;
+  a.download = `next-backup-${date}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  showToast("データを書き出しました。");
+}
+
+function importData(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      if (!validateStateShape(data)) throw new Error("invalid");
+      state = data;
+      if (!state.reminders) state.reminders = { enabled: "off", morning: "10:00", night: "22:00" };
+      if (!state.returnLogs) state.returnLogs = [];
+      if (typeof state.installDismissed === "undefined") state.installDismissed = false;
+      saveState();
+      render();
+      showToast("データを読み込みました。");
+    } catch {
+      showToast("読み込みできませんでした。JSON形式を確認してください。");
+    }
+  };
+  reader.readAsText(file);
+}
+
+
+function addTask() {
+  const input = document.getElementById("taskInput");
+  const title = input.value.trim();
+  if (!title) return;
+  state.tasks.push(makeTask(title, document.getElementById("dueInput").value, document.getElementById("categoryInput").value, document.getElementById("weightInput").value, document.getElementById("lossInput").value));
+  input.value = "";
+  skipIds.clear();
+  render();
+}
+
+function addDistraction(text) {
+  const value = (text || document.getElementById("distractionInput").value).trim();
+  if (!value) return;
+  state.distractions.push(value);
+  document.getElementById("distractionInput").value = "";
+  render();
+  showToast("メモした。今は戻ろう。");
+}
+
+function showToast(text) {
+  const toast = document.getElementById("toast");
+  toast.textContent = text;
+  toast.classList.remove("hidden");
+  setTimeout(() => toast.classList.add("hidden"), 1800);
+}
+
+function startWork() {
+  const task = state.tasks.find(t => t.id === currentTaskId);
+  if (!task) return;
+  logReturn("start");
+  document.getElementById("timerPanel").classList.remove("hidden");
+  document.getElementById("workingTitle").textContent = firstStepTitle(task.title);
+  remaining = Math.min(parseWeightMinutes(task.weight), 10) * 60;
+  updateTimerText();
+  clearInterval(timer);
+  timer = setInterval(() => {
+    remaining--;
+    updateTimerText();
+    if (remaining <= 0) { clearInterval(timer); showToast("10分完了。できたなら完了、続けるならもう一度開始。"); }
+  }, 1000);
+}
+
+function parseWeightMinutes(weight) { if (weight === "5分") return 5; if (weight === "10分") return 10; return 10; }
+function updateTimerText() {
+  const m = String(Math.floor(Math.max(0, remaining) / 60)).padStart(2,"0");
+  const s = String(Math.max(0, remaining) % 60).padStart(2,"0");
+  document.getElementById("timerText").textContent = `${m}:${s}`;
+}
+
+function finishCurrent() {
+  const task = state.tasks.find(t => t.id === currentTaskId);
+  if (!task) return;
+  state.done.push({ title: firstStepTitle(task.title), doneAt: Date.now() });
+  state.tasks = state.tasks.filter(t => t.id !== currentTaskId);
+  skipIds.delete(currentTaskId);
+  clearInterval(timer);
+  document.getElementById("timerPanel").classList.add("hidden");
+  logReturn("done");
+  showToast("できた。次に進もう。");
+  render();
+}
+
+document.getElementById("addTaskBtn").onclick = addTask;
+document.getElementById("taskInput").addEventListener("keydown", e => { if (e.key === "Enter") addTask(); });
+document.getElementById("addDistractionBtn").onclick = () => addDistraction();
+document.getElementById("distractionInput").addEventListener("keydown", e => { if (e.key === "Enter") addDistraction(); });
+document.getElementById("addCategoryBtn").onclick = addCategory;
+
+document.getElementById("toggleSettingsBtn").onclick = () => {
+  const panel = document.getElementById("settingsPanel");
+  panel.classList.toggle("hidden");
+  document.getElementById("toggleSettingsBtn").textContent = panel.classList.contains("hidden") ? "カテゴリ設定を開く" : "カテゴリ設定を閉じる";
+};
+
+document.getElementById("moodGrid").onclick = e => {
+  if (e.target.dataset.mood) { state.mood = e.target.dataset.mood; skipIds.clear(); render(); }
+};
+document.getElementById("skipBtn").onclick = () => { if (currentTaskId) skipIds.add(currentTaskId); render(); };
+document.getElementById("cantBtn").onclick = () => { state.mood = "疲れてる"; showToast("低出力モードにした。軽いものを出します。"); render(); };
+document.getElementById("startBtn").onclick = startWork;
+document.getElementById("doneBtn").onclick = finishCurrent;
+document.getElementById("pauseBtn").onclick = () => { clearInterval(timer); document.getElementById("timerPanel").classList.add("hidden"); showToast("中断OK。戻れる形で残してあります。"); };
+document.getElementById("distractionBtn").onclick = () => { const text = prompt("気になったことを逃がす"); if (text) addDistraction(text); };
+
+document.getElementById("quickDoneBtn").onclick = () => { logReturn("opened_only"); showToast("開けたからOK。戻ってこれた記録に入れました。"); };
+document.getElementById("dismissInstallBtn").onclick = () => { state.installDismissed = true; render(); };
+document.getElementById("returnStartBtn").onclick = () => { document.getElementById("returnPanel").classList.add("hidden"); logReturn("welcome_back"); scrollToNext(); };
+document.getElementById("returnHideBtn").onclick = () => { document.getElementById("returnPanel").classList.add("hidden"); };
+document.getElementById("permissionBtn").onclick = requestNotificationPermission;
+document.getElementById("testNotifyBtn").onclick = sendReminderNotification;
+document.getElementById("saveReminderBtn").onclick = () => {
+  state.reminders.enabled = document.getElementById("reminderEnabled").value;
+  state.reminders.morning = document.getElementById("morningTime").value;
+  state.reminders.night = document.getElementById("nightTime").value;
+  saveState();
+  scheduleNextReminder();
+  showToast("リマインド設定を保存しました。");
+};
+
+
+document.getElementById("exportDataBtn").onclick = exportData;
+document.getElementById("importDataBtn").onclick = () => document.getElementById("importFileInput").click();
+document.getElementById("importFileInput").onchange = e => importData(e.target.files[0]);
+
+document.getElementById("resetBtn").onclick = () => {
+  if (confirm("保存データを消して初期状態に戻しますか？")) {
+    localStorage.removeItem(STORAGE_KEY);
+    state = loadState();
+    skipIds.clear();
+    render();
+  }
+};
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("./service-worker.js").then(reg => {
+    if (reg.waiting) reg.waiting.postMessage({ type: "SKIP_WAITING" });
+    reg.update();
+  }).catch(() => {});
+}
+
+checkReturnPanel();
+render();
+scheduleNextReminder();
+setTimeout(() => {
+  if (document.getElementById("returnPanel").classList.contains("hidden")) scrollToNext();
+}, 700);
+</script>
+</body>
+</html>
